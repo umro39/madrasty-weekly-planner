@@ -178,7 +178,10 @@ const SubjectCard: React.FC<SubjectCardProps> = ({
               size="sm" 
               variant="secondary" 
               className="w-full"
-              onClick={handleUploadClick}
+              onClick={() => {
+                // فتح نافذة اختيار الملف مباشرة لتحديث الخطة
+                document.getElementById(`file-${subject}-${grade}`)?.click();
+              }}
             >
               <Upload className="w-4 h-4 mr-2" />
               تحديث الخطة
