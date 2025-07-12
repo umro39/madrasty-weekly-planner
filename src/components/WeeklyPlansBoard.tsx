@@ -167,16 +167,25 @@ const WeeklyPlansBoard = () => {
             </div>
             
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-              {subjects.map((subject) => (
-                <SubjectCard
-                  key={`${subject.name}-${grade}`}
-                  subject={subject.name}
-                  grade={grade}
-                  color={subject.color}
-                  onUpload={(file) => handleFileUpload(file, subject.name, grade)}
-                  weeklyPlan={getWeeklyPlan(subject.name, grade)}
-                />
-              ))}
+              {subjects
+                .filter(subject => {
+                  // إزالة التفكير الناقد من الأول والثاني متوسط فقط
+                  if (subject.name === "التفكير الناقد" && 
+                      (grade === "الأول متوسط" || grade === "الثاني متوسط")) {
+                    return false;
+                  }
+                  return true;
+                })
+                .map((subject) => (
+                  <SubjectCard
+                    key={`${subject.name}-${grade}`}
+                    subject={subject.name}
+                    grade={grade}
+                    color={subject.color}
+                    onUpload={(file) => handleFileUpload(file, subject.name, grade)}
+                    weeklyPlan={getWeeklyPlan(subject.name, grade)}
+                  />
+                ))}
             </div>
           </div>
         ))}
