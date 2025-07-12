@@ -217,6 +217,15 @@ const WeeklyPlansBoard = () => {
           </CardContent>
         </Card>
       </div>
+
+      {/* Footer */}
+      <footer className="max-w-7xl mx-auto mt-8 pb-6">
+        <div className="text-center">
+          <p className="text-sm text-muted-foreground">
+            " مصمم لوحة الخطط الاسبوعية الاستاذ فاضل سلمان المبارك "
+          </p>
+        </div>
+      </footer>
     </div>
   );
 };
