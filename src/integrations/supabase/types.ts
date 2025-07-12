@@ -14,7 +14,45 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      weekly_plans: {
+        Row: {
+          created_at: string
+          file_name: string
+          file_type: string
+          file_url: string
+          grade: string
+          id: string
+          subject: string
+          updated_at: string
+          upload_date: string
+          week_number: number
+        }
+        Insert: {
+          created_at?: string
+          file_name: string
+          file_type: string
+          file_url: string
+          grade: string
+          id?: string
+          subject: string
+          updated_at?: string
+          upload_date?: string
+          week_number: number
+        }
+        Update: {
+          created_at?: string
+          file_name?: string
+          file_type?: string
+          file_url?: string
+          grade?: string
+          id?: string
+          subject?: string
+          updated_at?: string
+          upload_date?: string
+          week_number?: number
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
