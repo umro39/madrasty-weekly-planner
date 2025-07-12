@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
-import { Upload, FileImage, FileText, Download, Eye, Lock } from "lucide-react";
+import { Upload, FileImage, FileText, Download, Eye, Lock, Loader2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 interface SubjectCardProps {
@@ -18,6 +18,7 @@ interface SubjectCardProps {
     uploadDate: string;
     url: string;
   };
+  isUploading?: boolean;
 }
 
 const getSubjectColors = (color: string) => {
@@ -43,7 +44,8 @@ const SubjectCard: React.FC<SubjectCardProps> = ({
   grade,
   color,
   onUpload,
-  weeklyPlan
+  weeklyPlan,
+  isUploading = false
 }) => {
   const [isDragging, setIsDragging] = useState(false);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
@@ -51,7 +53,7 @@ const SubjectCard: React.FC<SubjectCardProps> = ({
   const [pendingFile, setPendingFile] = useState<File | null>(null);
   const colors = getSubjectColors(color);
 
-  const TEACHER_PASSWORD = "معلم2024"; // كلمة السر الموحدة للمعلمين
+  const TEACHER_PASSWORD = "teacher2024"; // كلمة السر الموحدة للمعلمين
 
   const handleDragOver = (e: React.DragEvent) => {
     e.preventDefault();
@@ -144,6 +146,15 @@ const SubjectCard: React.FC<SubjectCardProps> = ({
       </CardHeader>
 
       <CardContent className="space-y-4">
+        {isUploading && (
+          <div className="absolute inset-0 bg-background/80 backdrop-blur-sm flex items-center justify-center z-10">
+            <div className="flex items-center gap-2">
+              <Loader2 className="w-5 h-5 animate-spin text-primary" />
+              <span className="text-sm font-medium">جارِ الرفع...</span>
+            </div>
+          </div>
+        )}
+        
         {weeklyPlan ? (
           <div className="space-y-3">
             <div className="flex items-center gap-2 text-sm text-muted-foreground">

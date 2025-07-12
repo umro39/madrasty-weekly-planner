@@ -2,9 +2,9 @@ import { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { ChevronLeft, ChevronRight, Calendar, BookOpen } from "lucide-react";
+import { ChevronLeft, ChevronRight, Calendar, BookOpen, Loader2 } from "lucide-react";
 import SubjectCard from "./SubjectCard";
-import { useToast } from "@/hooks/use-toast";
+import { useWeeklyPlans } from "@/hooks/useWeeklyPlans";
 
 // بيانات المواد الدراسية
 const subjects = [
@@ -23,20 +23,18 @@ const subjects = [
 
 const grades = ["الأول متوسط", "الثاني متوسط", "الثالث متوسط"];
 
-interface WeeklyPlan {
-  subject: string;
-  grade: string;
-  fileName: string;
-  fileType: 'image' | 'pdf';
-  uploadDate: string;
-  url: string;
-  week: number; // إضافة رقم الأسبوع
-}
-
 const WeeklyPlansBoard = () => {
-  const { toast } = useToast();
+  const { 
+    weeklyPlans, 
+    loading, 
+    upsertWeeklyPlan, 
+    getWeeklyPlan, 
+    getWeeklyPlans, 
+    uploadPlanFile 
+  } = useWeeklyPlans();
+  
   const [currentWeek, setCurrentWeek] = useState(1);
-  const [allWeeklyPlans, setAllWeeklyPlans] = useState<WeeklyPlan[]>([]);
+  const [uploadingFiles, setUploadingFiles] = useState<Set<string>>(new Set());
   
   const totalWeeks = 15; // إجمالي عدد الأسابيع
 
@@ -68,46 +66,66 @@ const WeeklyPlansBoard = () => {
     }
   };
 
-  const handleFileUpload = (file: File, subject: string, grade: string) => {
-    const fileType = file.type.startsWith('image/') ? 'image' : 'pdf';
-    const uploadDate = new Date().toLocaleDateString('ar-SA');
+  const handleFileUpload = async (file: File, subject: string, grade: string) => {
+    const uploadKey = `${subject}-${grade}`;
     
-    // محاكاة رفع الملف - في التطبيق الحقيقي سيتم رفعه للخادم
-    const newPlan: WeeklyPlan = {
-      subject,
-      grade,
-      fileName: file.name,
-      fileType,
-      uploadDate,
-      url: URL.createObjectURL(file),
-      week: currentWeek // ربط الخطة بالأسبوع الحالي
-    };
-
-    setAllWeeklyPlans(prev => {
-      const filtered = prev.filter(plan => 
-        !(plan.subject === subject && plan.grade === grade && plan.week === currentWeek)
-      );
-      return [...filtered, newPlan];
-    });
-
-    toast({
-      title: "تم رفع الخطة بنجاح! ✅",
-      description: `تم رفع خطة ${subject} - ${grade} للأسبوع ${currentWeek}`,
-    });
+    try {
+      setUploadingFiles(prev => new Set(prev).add(uploadKey));
+      
+      // رفع الملف إلى Supabase Storage
+      const { fileName, fileUrl, fileType } = await uploadPlanFile(file, subject, grade, currentWeek);
+      
+      // حفظ البيانات في قاعدة البيانات
+      await upsertWeeklyPlan({
+        subject,
+        grade,
+        week_number: currentWeek,
+        file_name: fileName,
+        file_type: fileType,
+        file_url: fileUrl,
+        upload_date: new Date().toISOString()
+      });
+      
+    } catch (error) {
+      console.error('Error uploading file:', error);
+    } finally {
+      setUploadingFiles(prev => {
+        const next = new Set(prev);
+        next.delete(uploadKey);
+        return next;
+      });
+    }
   };
 
-  const getWeeklyPlan = (subject: string, grade: string) => {
-    return allWeeklyPlans.find(plan => 
-      plan.subject === subject && plan.grade === grade && plan.week === currentWeek
-    );
+  const getWeeklyPlanForCard = (subject: string, grade: string) => {
+    const plan = getWeeklyPlan(subject, grade, currentWeek);
+    if (!plan) return undefined;
+    
+    return {
+      fileName: plan.file_name,
+      fileType: plan.file_type,
+      uploadDate: new Date(plan.upload_date).toLocaleDateString('ar-SA'),
+      url: plan.file_url
+    };
   };
 
   // حساب الخطط للأسبوع الحالي فقط
-  const currentWeekPlans = allWeeklyPlans.filter(plan => plan.week === currentWeek);
+  const currentWeekPlans = getWeeklyPlans(currentWeek);
 
   const weekDates = getCurrentWeekDates(currentWeek);
   const uploadedPlansCount = currentWeekPlans.length;
   const totalPlansNeeded = subjects.length * grades.length;
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <div className="flex items-center gap-3">
+          <Loader2 className="w-6 h-6 animate-spin" />
+          <span>جاريٍ تحميل الخطط الأسبوعية...</span>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-background p-4 md:p-6 lg:p-8">
@@ -147,7 +165,7 @@ const WeeklyPlansBoard = () => {
           <Card className="text-center">
             <CardContent className="pt-6">
               <div className="text-2xl font-bold text-accent">
-                {Math.round((uploadedPlansCount / totalPlansNeeded) * 100)}%
+                {totalPlansNeeded > 0 ? Math.round((uploadedPlansCount / totalPlansNeeded) * 100) : 0}%
               </div>
               <div className="text-sm text-muted-foreground">نسبة الإنجاز</div>
             </CardContent>
@@ -183,7 +201,8 @@ const WeeklyPlansBoard = () => {
                     grade={grade}
                     color={subject.color}
                     onUpload={(file) => handleFileUpload(file, subject.name, grade)}
-                    weeklyPlan={getWeeklyPlan(subject.name, grade)}
+                    weeklyPlan={getWeeklyPlanForCard(subject.name, grade)}
+                    isUploading={uploadingFiles.has(`${subject.name}-${grade}`)}
                   />
                 ))}
             </div>
