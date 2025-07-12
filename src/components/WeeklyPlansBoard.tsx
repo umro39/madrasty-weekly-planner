@@ -220,10 +220,17 @@ const WeeklyPlansBoard = () => {
 
       {/* Footer */}
       <footer className="max-w-7xl mx-auto mt-8 pb-6">
-        <div className="text-center">
+        <div className="text-center space-y-4">
           <p className="text-sm text-muted-foreground">
             " مصمم لوحة الخطط الاسبوعية الاستاذ فاضل سلمان المبارك "
           </p>
+          <div className="flex justify-center">
+            <img 
+              src="/lovable-uploads/4e474930-65bd-44fe-a478-9e084b987ae0.png" 
+              alt="شعار الأستاذ فاضل سلمان المبارك"
+              className="h-16 w-auto"
+            />
+          </div>
         </div>
       </footer>
     </div>
