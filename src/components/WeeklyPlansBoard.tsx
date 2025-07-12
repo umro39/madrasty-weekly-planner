@@ -118,7 +118,7 @@ const WeeklyPlansBoard = () => {
             <div className="flex items-center justify-center gap-3 mb-2">
               <BookOpen className="w-8 h-8" />
               <CardTitle className="text-2xl md:text-3xl font-bold">
-                لوحة الخطط الأسبوعية - المرحلة المتوسطة
+                لوحة الخطط الأسبوعية - متوسطة عمرو بن العاص بالهفوف
               </CardTitle>
             </div>
             <div className="flex items-center justify-center gap-2 text-lg">
