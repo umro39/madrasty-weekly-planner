@@ -30,16 +30,22 @@ interface WeeklyPlan {
   fileType: 'image' | 'pdf';
   uploadDate: string;
   url: string;
+  week: number; // إضافة رقم الأسبوع
 }
 
 const WeeklyPlansBoard = () => {
   const { toast } = useToast();
   const [currentWeek, setCurrentWeek] = useState(1);
-  const [weeklyPlans, setWeeklyPlans] = useState<WeeklyPlan[]>([]);
+  const [allWeeklyPlans, setAllWeeklyPlans] = useState<WeeklyPlan[]>([]);
+  
+  const totalWeeks = 15; // إجمالي عدد الأسابيع
 
-  const getCurrentWeekDates = () => {
-    const now = new Date();
-    const startOfWeek = new Date(now.setDate(now.getDate() - now.getDay()));
+  const getCurrentWeekDates = (weekNumber: number) => {
+    // حساب التواريخ بناءً على رقم الأسبوع (افتراض بداية العام الدراسي)
+    const schoolYearStart = new Date('2024-09-01'); // تاريخ بداية العام الدراسي
+    const startOfWeek = new Date(schoolYearStart);
+    startOfWeek.setDate(schoolYearStart.getDate() + (weekNumber - 1) * 7);
+    
     const endOfWeek = new Date(startOfWeek);
     endOfWeek.setDate(startOfWeek.getDate() + 6);
     
@@ -47,6 +53,19 @@ const WeeklyPlansBoard = () => {
       start: startOfWeek.toLocaleDateString('ar-SA'),
       end: endOfWeek.toLocaleDateString('ar-SA')
     };
+  };
+
+  // التنقل بين الأسابيع
+  const goToPreviousWeek = () => {
+    if (currentWeek > 1) {
+      setCurrentWeek(currentWeek - 1);
+    }
+  };
+
+  const goToNextWeek = () => {
+    if (currentWeek < totalWeeks) {
+      setCurrentWeek(currentWeek + 1);
+    }
   };
 
   const handleFileUpload = (file: File, subject: string, grade: string) => {
@@ -60,30 +79,34 @@ const WeeklyPlansBoard = () => {
       fileName: file.name,
       fileType,
       uploadDate,
-      url: URL.createObjectURL(file)
+      url: URL.createObjectURL(file),
+      week: currentWeek // ربط الخطة بالأسبوع الحالي
     };
 
-    setWeeklyPlans(prev => {
+    setAllWeeklyPlans(prev => {
       const filtered = prev.filter(plan => 
-        !(plan.subject === subject && plan.grade === grade)
+        !(plan.subject === subject && plan.grade === grade && plan.week === currentWeek)
       );
       return [...filtered, newPlan];
     });
 
     toast({
       title: "تم رفع الخطة بنجاح! ✅",
-      description: `تم رفع خطة ${subject} - ${grade}`,
+      description: `تم رفع خطة ${subject} - ${grade} للأسبوع ${currentWeek}`,
     });
   };
 
   const getWeeklyPlan = (subject: string, grade: string) => {
-    return weeklyPlans.find(plan => 
-      plan.subject === subject && plan.grade === grade
+    return allWeeklyPlans.find(plan => 
+      plan.subject === subject && plan.grade === grade && plan.week === currentWeek
     );
   };
 
-  const weekDates = getCurrentWeekDates();
-  const uploadedPlansCount = weeklyPlans.length;
+  // حساب الخطط للأسبوع الحالي فقط
+  const currentWeekPlans = allWeeklyPlans.filter(plan => plan.week === currentWeek);
+
+  const weekDates = getCurrentWeekDates(currentWeek);
+  const uploadedPlansCount = currentWeekPlans.length;
   const totalPlansNeeded = subjects.length * grades.length;
 
   return (
@@ -100,7 +123,7 @@ const WeeklyPlansBoard = () => {
             </div>
             <div className="flex items-center justify-center gap-2 text-lg">
               <Calendar className="w-5 h-5" />
-              <span>الأسبوع الحالي: {weekDates.start} - {weekDates.end}</span>
+              <span>الأسبوع {currentWeek} من {totalWeeks}: {weekDates.start} - {weekDates.end}</span>
             </div>
           </CardHeader>
         </Card>
@@ -163,12 +186,22 @@ const WeeklyPlansBoard = () => {
       <div className="max-w-7xl mx-auto mt-8">
         <Card>
           <CardContent className="flex items-center justify-between p-4">
-            <Button variant="outline" size="sm">
+            <Button 
+              variant="outline" 
+              size="sm"
+              onClick={goToPreviousWeek}
+              disabled={currentWeek === 1}
+            >
               <ChevronRight className="w-4 h-4 ml-2" />
               الأسبوع السابق
             </Button>
-            <span className="text-sm font-medium">الأسبوع {currentWeek}</span>
-            <Button variant="outline" size="sm">
+            <span className="text-sm font-medium">الأسبوع {currentWeek} من {totalWeeks}</span>
+            <Button 
+              variant="outline" 
+              size="sm"
+              onClick={goToNextWeek}
+              disabled={currentWeek === totalWeeks}
+            >
               <ChevronLeft className="w-4 h-4 mr-2" />
               الأسبوع التالي
             </Button>
