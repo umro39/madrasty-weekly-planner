@@ -2,7 +2,9 @@ import { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Upload, FileImage, FileText, Download, Eye } from "lucide-react";
+import { Input } from "@/components/ui/input";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Upload, FileImage, FileText, Download, Eye, Lock } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 interface SubjectCardProps {
@@ -44,7 +46,12 @@ const SubjectCard: React.FC<SubjectCardProps> = ({
   weeklyPlan
 }) => {
   const [isDragging, setIsDragging] = useState(false);
+  const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [password, setPassword] = useState("");
+  const [pendingFile, setPendingFile] = useState<File | null>(null);
   const colors = getSubjectColors(color);
+
+  const TEACHER_PASSWORD = "معلم2024"; // كلمة السر الموحدة للمعلمين
 
   const handleDragOver = (e: React.DragEvent) => {
     e.preventDefault();
@@ -66,15 +73,33 @@ const SubjectCard: React.FC<SubjectCardProps> = ({
     );
     
     if (validFile) {
-      onUpload(validFile);
+      setPendingFile(validFile);
+      setIsDialogOpen(true);
     }
   };
 
   const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
-      onUpload(file);
+      setPendingFile(file);
+      setIsDialogOpen(true);
     }
+  };
+
+  const handlePasswordSubmit = () => {
+    if (password === TEACHER_PASSWORD && pendingFile) {
+      onUpload(pendingFile);
+      setIsDialogOpen(false);
+      setPassword("");
+      setPendingFile(null);
+    } else {
+      alert("كلمة السر غير صحيحة! يرجى المحاولة مرة أخرى.");
+      setPassword("");
+    }
+  };
+
+  const handleUploadClick = () => {
+    document.getElementById(`file-${subject}-${grade}`)?.click();
   };
 
   return (
@@ -127,7 +152,7 @@ const SubjectCard: React.FC<SubjectCardProps> = ({
               size="sm" 
               variant="secondary" 
               className="w-full"
-              onClick={() => document.getElementById(`file-${subject}-${grade}`)?.click()}
+              onClick={handleUploadClick}
             >
               <Upload className="w-4 h-4 mr-2" />
               تحديث الخطة
@@ -143,7 +168,7 @@ const SubjectCard: React.FC<SubjectCardProps> = ({
             onDragOver={handleDragOver}
             onDragLeave={handleDragLeave}
             onDrop={handleDrop}
-            onClick={() => document.getElementById(`file-${subject}-${grade}`)?.click()}
+            onClick={handleUploadClick}
           >
             <Upload className="w-8 h-8 mx-auto mb-2 text-muted-foreground" />
             <p className="text-sm font-medium text-foreground mb-1">
@@ -165,6 +190,51 @@ const SubjectCard: React.FC<SubjectCardProps> = ({
           onChange={handleFileSelect}
           className="hidden"
         />
+
+        {/* Password Dialog */}
+        <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+          <DialogContent className="sm:max-w-md text-center">
+            <DialogHeader>
+              <DialogTitle className="flex items-center justify-center gap-2 text-lg">
+                <Lock className="w-5 h-5 text-primary" />
+                تأكيد هوية المعلم
+              </DialogTitle>
+            </DialogHeader>
+            <div className="space-y-4 py-4">
+              <p className="text-sm text-muted-foreground">
+                يرجى إدخال كلمة السر المخصصة للمعلمين لرفع الخطة الأسبوعية
+              </p>
+              <Input
+                type="password"
+                placeholder="كلمة السر"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                onKeyPress={(e) => e.key === 'Enter' && handlePasswordSubmit()}
+                className="text-center"
+              />
+              <div className="flex gap-2">
+                <Button 
+                  onClick={handlePasswordSubmit}
+                  className="flex-1"
+                  disabled={!password.trim()}
+                >
+                  تأكيد الرفع
+                </Button>
+                <Button 
+                  variant="outline" 
+                  onClick={() => {
+                    setIsDialogOpen(false);
+                    setPassword("");
+                    setPendingFile(null);
+                  }}
+                  className="flex-1"
+                >
+                  إلغاء
+                </Button>
+              </div>
+            </div>
+          </DialogContent>
+        </Dialog>
       </CardContent>
     </Card>
   );
