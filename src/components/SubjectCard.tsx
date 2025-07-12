@@ -53,7 +53,7 @@ const SubjectCard: React.FC<SubjectCardProps> = ({
   const [pendingFile, setPendingFile] = useState<File | null>(null);
   const colors = getSubjectColors(color);
 
-  const TEACHER_PASSWORD = "teacher2024"; // كلمة السر الموحدة للمعلمين
+  const TEACHER_PASSWORD = "معلم2024"; // كلمة السر الموحدة للمعلمين
 
   const handleDragOver = (e: React.DragEvent) => {
     e.preventDefault();
