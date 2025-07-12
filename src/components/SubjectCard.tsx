@@ -102,6 +102,23 @@ const SubjectCard: React.FC<SubjectCardProps> = ({
     document.getElementById(`file-${subject}-${grade}`)?.click();
   };
 
+  const handleViewFile = () => {
+    if (weeklyPlan?.url) {
+      window.open(weeklyPlan.url, '_blank');
+    }
+  };
+
+  const handleDownloadFile = () => {
+    if (weeklyPlan?.url && weeklyPlan?.fileName) {
+      const link = document.createElement('a');
+      link.href = weeklyPlan.url;
+      link.download = weeklyPlan.fileName;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+    }
+  };
+
   return (
     <Card className={cn(
       "group relative overflow-hidden transition-all duration-300 hover:shadow-hover",
@@ -139,11 +156,20 @@ const SubjectCard: React.FC<SubjectCardProps> = ({
             </div>
             
             <div className="flex gap-2">
-              <Button size="sm" variant="outline" className="flex-1">
+              <Button 
+                size="sm" 
+                variant="outline" 
+                className="flex-1"
+                onClick={handleViewFile}
+              >
                 <Eye className="w-4 h-4 mr-2" />
                 عرض
               </Button>
-              <Button size="sm" variant="outline">
+              <Button 
+                size="sm" 
+                variant="outline"
+                onClick={handleDownloadFile}
+              >
                 <Download className="w-4 h-4" />
               </Button>
             </div>
