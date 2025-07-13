@@ -62,6 +62,8 @@ export const useWeeklyPlans = () => {
           file_type: planData.file_type,
           file_url: planData.file_url,
           upload_date: planData.upload_date
+        }, {
+          onConflict: 'subject,grade,week_number'
         })
         .select()
         .single();
