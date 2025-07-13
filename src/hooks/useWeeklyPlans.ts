@@ -101,9 +101,30 @@ export const useWeeklyPlans = () => {
     }
   };
 
-  // حذف خطة
+  // حذف خطة (مع حذف الملف من التخزين)
   const deleteWeeklyPlan = async (id: string) => {
     try {
+      // البحث عن الخطة أولاً للحصول على رابط الملف
+      const planToDelete = weeklyPlans.find(plan => plan.id === id);
+      
+      if (planToDelete?.file_url) {
+        // استخراج مسار الملف من الرابط
+        const url = new URL(planToDelete.file_url);
+        const filePath = url.pathname.split('/').pop();
+        
+        if (filePath) {
+          // حذف الملف من التخزين
+          const { error: deleteFileError } = await supabase.storage
+            .from('plans')
+            .remove([filePath]);
+          
+          if (deleteFileError) {
+            console.warn('Warning: Could not delete file from storage:', deleteFileError);
+          }
+        }
+      }
+
+      // حذف السجل من قاعدة البيانات
       const { error } = await supabase
         .from('weekly_plans')
         .delete()
@@ -114,8 +135,8 @@ export const useWeeklyPlans = () => {
       setWeeklyPlans(prev => prev.filter(plan => plan.id !== id));
 
       toast({
-        title: "تم حذف الخطة",
-        description: "تم حذف الخطة الأسبوعية بنجاح"
+        title: "تم حذف الخطة ✅",
+        description: "تم حذف الخطة الأسبوعية والملف المرفق بنجاح"
       });
     } catch (error) {
       console.error('Error deleting weekly plan:', error);

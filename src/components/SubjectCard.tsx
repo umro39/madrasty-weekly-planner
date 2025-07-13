@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
-import { Upload, FileImage, FileText, Download, Eye, Lock, Loader2 } from "lucide-react";
+import { Upload, FileImage, FileText, Download, Eye, Lock, Loader2, Trash2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 interface SubjectCardProps {
@@ -12,6 +12,7 @@ interface SubjectCardProps {
   grade: string;
   color: string;
   onUpload: (file: File) => void;
+  onDelete?: () => void;
   weeklyPlan?: {
     fileName: string;
     fileType: 'image' | 'pdf';
@@ -44,12 +45,15 @@ const SubjectCard: React.FC<SubjectCardProps> = ({
   grade,
   color,
   onUpload,
+  onDelete,
   weeklyPlan,
   isUploading = false
 }) => {
   const [isDragging, setIsDragging] = useState(false);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [password, setPassword] = useState("");
+  const [deletePassword, setDeletePassword] = useState("");
   const [pendingFile, setPendingFile] = useState<File | null>(null);
   const colors = getSubjectColors(color);
 
@@ -121,6 +125,17 @@ const SubjectCard: React.FC<SubjectCardProps> = ({
     }
   };
 
+  const handleDeleteSubmit = () => {
+    if (deletePassword === TEACHER_PASSWORD && onDelete) {
+      onDelete();
+      setIsDeleteDialogOpen(false);
+      setDeletePassword("");
+    } else {
+      alert("كلمة السر غير صحيحة! يرجى المحاولة مرة أخرى.");
+      setDeletePassword("");
+    }
+  };
+
   return (
     <Card className={cn(
       "group relative overflow-hidden transition-all duration-300 hover:shadow-hover",
@@ -183,6 +198,15 @@ const SubjectCard: React.FC<SubjectCardProps> = ({
               >
                 <Download className="w-4 h-4" />
               </Button>
+              {onDelete && (
+                <Button 
+                  size="sm" 
+                  variant="destructive"
+                  onClick={() => setIsDeleteDialogOpen(true)}
+                >
+                  <Trash2 className="w-4 h-4" />
+                </Button>
+              )}
             </div>
             
             <Button 
@@ -231,7 +255,7 @@ const SubjectCard: React.FC<SubjectCardProps> = ({
           className="hidden"
         />
 
-        {/* Password Dialog */}
+        {/* Upload Password Dialog */}
         <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
           <DialogContent className="sm:max-w-md text-center">
             <DialogHeader>
@@ -266,6 +290,54 @@ const SubjectCard: React.FC<SubjectCardProps> = ({
                     setIsDialogOpen(false);
                     setPassword("");
                     setPendingFile(null);
+                  }}
+                  className="flex-1"
+                >
+                  إلغاء
+                </Button>
+              </div>
+            </div>
+          </DialogContent>
+        </Dialog>
+
+        {/* Delete Password Dialog */}
+        <Dialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
+          <DialogContent className="sm:max-w-md text-center">
+            <DialogHeader>
+              <DialogTitle className="flex items-center justify-center gap-2 text-lg text-destructive">
+                <Trash2 className="w-5 h-5" />
+                حذف الخطة الأسبوعية
+              </DialogTitle>
+            </DialogHeader>
+            <div className="space-y-4 py-4">
+              <p className="text-sm text-muted-foreground">
+                يرجى إدخال كلمة السر المخصصة للمعلمين لحذف الخطة الأسبوعية
+              </p>
+              <p className="text-sm font-medium text-destructive">
+                تحذير: سيتم حذف الخطة نهائياً ولا يمكن استرجاعها!
+              </p>
+              <Input
+                type="password"
+                placeholder="كلمة السر"
+                value={deletePassword}
+                onChange={(e) => setDeletePassword(e.target.value)}
+                onKeyPress={(e) => e.key === 'Enter' && handleDeleteSubmit()}
+                className="text-center"
+              />
+              <div className="flex gap-2">
+                <Button 
+                  onClick={handleDeleteSubmit}
+                  variant="destructive"
+                  className="flex-1"
+                  disabled={!deletePassword.trim()}
+                >
+                  تأكيد الحذف
+                </Button>
+                <Button 
+                  variant="outline" 
+                  onClick={() => {
+                    setIsDeleteDialogOpen(false);
+                    setDeletePassword("");
                   }}
                   className="flex-1"
                 >

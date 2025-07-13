@@ -28,6 +28,7 @@ const WeeklyPlansBoard = () => {
     weeklyPlans, 
     loading, 
     upsertWeeklyPlan, 
+    deleteWeeklyPlan,
     getWeeklyPlan, 
     getWeeklyPlans, 
     uploadPlanFile 
@@ -201,6 +202,12 @@ const WeeklyPlansBoard = () => {
                     grade={grade}
                     color={subject.color}
                     onUpload={(file) => handleFileUpload(file, subject.name, grade)}
+                    onDelete={() => {
+                      const plan = getWeeklyPlan(subject.name, grade, currentWeek);
+                      if (plan?.id) {
+                        deleteWeeklyPlan(plan.id);
+                      }
+                    }}
                     weeklyPlan={getWeeklyPlanForCard(subject.name, grade)}
                     isUploading={uploadingFiles.has(`${subject.name}-${grade}`)}
                   />
