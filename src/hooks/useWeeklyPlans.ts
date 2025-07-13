@@ -142,19 +142,30 @@ export const useWeeklyPlans = () => {
   // رفع ملف إلى Supabase Storage
   const uploadPlanFile = async (file: File, subject: string, grade: string, weekNumber: number) => {
     try {
+      console.log('Starting file upload:', { file: file.name, subject, grade, weekNumber });
+      
       const fileExt = file.name.split('.').pop();
       const fileName = `${subject}-${grade}-week${weekNumber}-${Date.now()}.${fileExt}`;
       const filePath = `plans/${fileName}`;
 
-      const { error: uploadError } = await supabase.storage
+      console.log('Uploading file to path:', filePath);
+
+      const { data: uploadData, error: uploadError } = await supabase.storage
         .from('plans')
         .upload(filePath, file);
 
-      if (uploadError) throw uploadError;
+      console.log('Upload result:', { uploadData, uploadError });
+
+      if (uploadError) {
+        console.error('Upload error details:', uploadError);
+        throw uploadError;
+      }
 
       const { data: { publicUrl } } = supabase.storage
         .from('plans')
         .getPublicUrl(filePath);
+
+      console.log('Generated public URL:', publicUrl);
 
       return {
         fileName: file.name,
@@ -163,6 +174,11 @@ export const useWeeklyPlans = () => {
       };
     } catch (error) {
       console.error('Error uploading file:', error);
+      toast({
+        title: "خطأ في رفع الملف",
+        description: error instanceof Error ? error.message : "حدث خطأ غير متوقع",
+        variant: "destructive"
+      });
       throw error;
     }
   };
