@@ -145,8 +145,11 @@ export const useWeeklyPlans = () => {
       console.log('Starting file upload:', { file: file.name, subject, grade, weekNumber });
       
       const fileExt = file.name.split('.').pop();
-      const fileName = `${subject}-${grade}-week${weekNumber}-${Date.now()}.${fileExt}`;
-      const filePath = `plans/${fileName}`;
+      // استخدام أسماء إنجليزية فقط لتجنب مشاكل Supabase Storage
+      const sanitizedSubject = encodeURIComponent(subject).replace(/%/g, '');
+      const sanitizedGrade = encodeURIComponent(grade).replace(/%/g, '');
+      const fileName = `plan-${sanitizedSubject}-${sanitizedGrade}-week${weekNumber}-${Date.now()}.${fileExt}`;
+      const filePath = fileName; // إزالة مجلد plans من المسار
 
       console.log('Uploading file to path:', filePath);
 
