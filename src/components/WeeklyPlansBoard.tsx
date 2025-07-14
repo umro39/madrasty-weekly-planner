@@ -1,8 +1,11 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { ChevronLeft, ChevronRight, Calendar, BookOpen, Loader2 } from "lucide-react";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { ChevronLeft, ChevronRight, Calendar, BookOpen, Loader2, Settings } from "lucide-react";
 import SubjectCard from "./SubjectCard";
 import { useWeeklyPlans } from "@/hooks/useWeeklyPlans";
 
@@ -36,10 +39,34 @@ const WeeklyPlansBoard = () => {
   
   const [currentWeek, setCurrentWeek] = useState(1);
   const [uploadingFiles, setUploadingFiles] = useState<Set<string>>(new Set());
+  const [customDates, setCustomDates] = useState<Record<number, { start: string; end: string }>>({});
+  const [showDateSettings, setShowDateSettings] = useState(false);
+  const [editingWeek, setEditingWeek] = useState<number | null>(null);
+  const [tempStartDate, setTempStartDate] = useState("");
+  const [tempEndDate, setTempEndDate] = useState("");
   
   const totalWeeks = 15; // إجمالي عدد الأسابيع
 
+  // تحميل التواريخ المخصصة من localStorage
+  useEffect(() => {
+    const savedDates = localStorage.getItem('customWeekDates');
+    if (savedDates) {
+      setCustomDates(JSON.parse(savedDates));
+    }
+  }, []);
+
+  // حفظ التواريخ المخصصة في localStorage
+  const saveCustomDates = (dates: Record<number, { start: string; end: string }>) => {
+    setCustomDates(dates);
+    localStorage.setItem('customWeekDates', JSON.stringify(dates));
+  };
+
   const getCurrentWeekDates = (weekNumber: number) => {
+    // إذا كان هناك تاريخ مخصص لهذا الأسبوع، استخدمه
+    if (customDates[weekNumber]) {
+      return customDates[weekNumber];
+    }
+    
     // حساب التواريخ بناءً على رقم الأسبوع (افتراض بداية العام الدراسي)
     const schoolYearStart = new Date('2024-09-01'); // تاريخ بداية العام الدراسي
     const startOfWeek = new Date(schoolYearStart);
@@ -52,6 +79,38 @@ const WeeklyPlansBoard = () => {
       start: startOfWeek.toLocaleDateString('ar-SA'),
       end: endOfWeek.toLocaleDateString('ar-SA')
     };
+  };
+
+  // دالة لتعديل تواريخ الأسبوع
+  const handleEditWeekDates = (weekNumber: number) => {
+    const currentDates = getCurrentWeekDates(weekNumber);
+    setEditingWeek(weekNumber);
+    setTempStartDate(currentDates.start);
+    setTempEndDate(currentDates.end);
+    setShowDateSettings(true);
+  };
+
+  // دالة لحفظ التواريخ المعدلة
+  const handleSaveDates = () => {
+    if (editingWeek && tempStartDate && tempEndDate) {
+      const newCustomDates = {
+        ...customDates,
+        [editingWeek]: {
+          start: tempStartDate,
+          end: tempEndDate
+        }
+      };
+      saveCustomDates(newCustomDates);
+      setShowDateSettings(false);
+      setEditingWeek(null);
+    }
+  };
+
+  // دالة لإعادة تعيين تواريخ الأسبوع للافتراضي
+  const handleResetWeekDates = (weekNumber: number) => {
+    const newCustomDates = { ...customDates };
+    delete newCustomDates[weekNumber];
+    saveCustomDates(newCustomDates);
   };
 
   // التنقل بين الأسابيع
@@ -143,6 +202,14 @@ const WeeklyPlansBoard = () => {
             <div className="flex items-center justify-center gap-2 text-lg">
               <Calendar className="w-5 h-5" />
               <span>الأسبوع {currentWeek} من {totalWeeks}: {weekDates.start} - {weekDates.end}</span>
+              <Button 
+                variant="ghost" 
+                size="sm" 
+                onClick={() => handleEditWeekDates(currentWeek)}
+                className="text-white hover:bg-white/20 mr-2"
+              >
+                <Settings className="w-4 h-4" />
+              </Button>
             </div>
           </CardHeader>
         </Card>
@@ -243,6 +310,61 @@ const WeeklyPlansBoard = () => {
           </CardContent>
         </Card>
       </div>
+
+      {/* Date Settings Dialog */}
+      <Dialog open={showDateSettings} onOpenChange={setShowDateSettings}>
+        <DialogContent className="sm:max-w-md" dir="rtl">
+          <DialogHeader>
+            <DialogTitle>تعديل تواريخ الأسبوع {editingWeek}</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div>
+              <Label htmlFor="start-date">تاريخ البداية</Label>
+              <Input
+                id="start-date"
+                value={tempStartDate}
+                onChange={(e) => setTempStartDate(e.target.value)}
+                placeholder="مثال: ١٤٤٦/٣/١"
+              />
+            </div>
+            <div>
+              <Label htmlFor="end-date">تاريخ النهاية</Label>
+              <Input
+                id="end-date"
+                value={tempEndDate}
+                onChange={(e) => setTempEndDate(e.target.value)}
+                placeholder="مثال: ١٤٤٦/٣/٧"
+              />
+            </div>
+            <div className="flex gap-2 pt-4">
+              <Button onClick={handleSaveDates} className="flex-1">
+                حفظ
+              </Button>
+              <Button 
+                variant="outline" 
+                onClick={() => setShowDateSettings(false)}
+                className="flex-1"
+              >
+                إلغاء
+              </Button>
+              {editingWeek && customDates[editingWeek] && (
+                <Button 
+                  variant="destructive" 
+                  onClick={() => {
+                    if (editingWeek) {
+                      handleResetWeekDates(editingWeek);
+                      setShowDateSettings(false);
+                    }
+                  }}
+                  className="flex-1"
+                >
+                  إعادة تعيين
+                </Button>
+              )}
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
 
       {/* Footer */}
       <footer className="max-w-7xl mx-auto mt-8 pb-6">
