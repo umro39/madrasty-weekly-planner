@@ -44,6 +44,9 @@ const WeeklyPlansBoard = () => {
   const [editingWeek, setEditingWeek] = useState<number | null>(null);
   const [tempStartDate, setTempStartDate] = useState("");
   const [tempEndDate, setTempEndDate] = useState("");
+  const [showPasswordDialog, setShowPasswordDialog] = useState(false);
+  const [passwordForWeek, setPasswordForWeek] = useState<number | null>(null);
+  const [password, setPassword] = useState("");
   
   const totalWeeks = 15; // إجمالي عدد الأسابيع
 
@@ -83,11 +86,23 @@ const WeeklyPlansBoard = () => {
 
   // دالة لتعديل تواريخ الأسبوع
   const handleEditWeekDates = (weekNumber: number) => {
-    const currentDates = getCurrentWeekDates(weekNumber);
-    setEditingWeek(weekNumber);
-    setTempStartDate(currentDates.start);
-    setTempEndDate(currentDates.end);
-    setShowDateSettings(true);
+    setPasswordForWeek(weekNumber);
+    setPassword("");
+    setShowPasswordDialog(true);
+  };
+
+  // دالة للتحقق من الرقم السري وفتح تعديل التاريخ
+  const handlePasswordVerification = () => {
+    if (password === "123456" && passwordForWeek) {
+      const currentDates = getCurrentWeekDates(passwordForWeek);
+      setEditingWeek(passwordForWeek);
+      setTempStartDate(currentDates.start);
+      setTempEndDate(currentDates.end);
+      setShowPasswordDialog(false);
+      setShowDateSettings(true);
+      setPassword("");
+      setPasswordForWeek(null);
+    }
   };
 
   // دالة لحفظ التواريخ المعدلة
@@ -310,6 +325,48 @@ const WeeklyPlansBoard = () => {
           </CardContent>
         </Card>
       </div>
+
+      {/* Password Dialog for Date Settings */}
+      <Dialog open={showPasswordDialog} onOpenChange={setShowPasswordDialog}>
+        <DialogContent className="sm:max-w-md" dir="rtl">
+          <DialogHeader>
+            <DialogTitle>إدخال الرقم السري</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div>
+              <Label htmlFor="password">الرقم السري لتعديل التاريخ</Label>
+              <Input
+                id="password"
+                type="password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                placeholder="أدخل الرقم السري"
+                onKeyPress={(e) => {
+                  if (e.key === "Enter") {
+                    handlePasswordVerification();
+                  }
+                }}
+              />
+            </div>
+            <div className="flex gap-2 pt-4">
+              <Button onClick={handlePasswordVerification} className="flex-1">
+                تأكيد
+              </Button>
+              <Button 
+                variant="outline" 
+                onClick={() => {
+                  setShowPasswordDialog(false);
+                  setPassword("");
+                  setPasswordForWeek(null);
+                }}
+                className="flex-1"
+              >
+                إلغاء
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
 
       {/* Date Settings Dialog */}
       <Dialog open={showDateSettings} onOpenChange={setShowDateSettings}>
