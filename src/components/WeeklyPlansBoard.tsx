@@ -5,7 +5,7 @@ import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { ChevronLeft, ChevronRight, Calendar, BookOpen, Loader2, Settings } from "lucide-react";
+import { ChevronLeft, ChevronRight, Calendar, BookOpen, Loader2, Settings, CalendarDays } from "lucide-react";
 import SubjectCard from "./SubjectCard";
 import { useWeeklyPlans } from "@/hooks/useWeeklyPlans";
 
@@ -128,6 +128,22 @@ const WeeklyPlansBoard = () => {
     saveCustomDates(newCustomDates);
   };
 
+  // دالة لجعل بداية الأسبوع هو التاريخ الحالي
+  const setWeekToCurrentDate = (weekNumber: number) => {
+    const today = new Date();
+    const endOfWeek = new Date(today);
+    endOfWeek.setDate(today.getDate() + 6);
+    
+    const newCustomDates = {
+      ...customDates,
+      [weekNumber]: {
+        start: today.toLocaleDateString('ar-SA'),
+        end: endOfWeek.toLocaleDateString('ar-SA')
+      }
+    };
+    saveCustomDates(newCustomDates);
+  };
+
   // التنقل بين الأسابيع
   const goToPreviousWeek = () => {
     if (currentWeek > 1) {
@@ -217,14 +233,26 @@ const WeeklyPlansBoard = () => {
             <div className="flex items-center justify-center gap-2 text-lg">
               <Calendar className="w-5 h-5" />
               <span>الأسبوع {currentWeek} من {totalWeeks}: {weekDates.start} - {weekDates.end}</span>
-              <Button 
-                variant="ghost" 
-                size="sm" 
-                onClick={() => handleEditWeekDates(currentWeek)}
-                className="text-white hover:bg-white/20 mr-2"
-              >
-                <Settings className="w-4 h-4" />
-              </Button>
+              <div className="flex gap-1 mr-2">
+                <Button 
+                  variant="ghost" 
+                  size="sm" 
+                  onClick={() => setWeekToCurrentDate(currentWeek)}
+                  className="text-white hover:bg-white/20"
+                  title="جعل بداية الأسبوع هو التاريخ الحالي"
+                >
+                  <CalendarDays className="w-4 h-4" />
+                </Button>
+                <Button 
+                  variant="ghost" 
+                  size="sm" 
+                  onClick={() => handleEditWeekDates(currentWeek)}
+                  className="text-white hover:bg-white/20"
+                  title="تعديل تواريخ الأسبوع"
+                >
+                  <Settings className="w-4 h-4" />
+                </Button>
+              </div>
             </div>
           </CardHeader>
         </Card>
