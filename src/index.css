@@ -62,7 +62,8 @@
     --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 
     /* تأثير النيون */
-    --neon-text-shadow: 0 0 10px hsl(var(--primary)), 0 0 20px hsl(var(--primary)), 0 0 30px hsl(var(--primary)), 0 0 40px hsl(var(--primary));
+    --neon-text-shadow: 0 0 10px hsl(45 100% 60%), 0 0 20px hsl(45 100% 60%), 0 0 30px hsl(45 100% 60%), 0 0 40px hsl(45 100% 60%);
+    --neon-color: 45 100% 60%;
 
     --radius: 0.5rem;
 
@@ -138,10 +139,10 @@
 
   @keyframes neon-glow {
     from {
-      text-shadow: 0 0 10px hsl(var(--primary)), 0 0 20px hsl(var(--primary)), 0 0 30px hsl(var(--primary)), 0 0 40px hsl(var(--primary));
+      text-shadow: 0 0 10px hsl(var(--neon-color)), 0 0 20px hsl(var(--neon-color)), 0 0 30px hsl(var(--neon-color)), 0 0 40px hsl(var(--neon-color));
     }
     to {
-      text-shadow: 0 0 20px hsl(var(--primary)), 0 0 30px hsl(var(--primary)), 0 0 40px hsl(var(--primary)), 0 0 50px hsl(var(--primary)), 0 0 60px hsl(var(--primary));
+      text-shadow: 0 0 20px hsl(var(--neon-color)), 0 0 30px hsl(var(--neon-color)), 0 0 40px hsl(var(--neon-color)), 0 0 50px hsl(var(--neon-color)), 0 0 60px hsl(var(--neon-color));
     }
   }
 }
