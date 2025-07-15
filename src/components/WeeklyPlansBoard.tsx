@@ -226,7 +226,7 @@ const WeeklyPlansBoard = () => {
           <CardHeader className="text-center">
             <div className="flex items-center justify-center gap-3 mb-2">
               <BookOpen className="w-8 h-8" />
-              <CardTitle className="text-2xl md:text-3xl font-bold">
+              <CardTitle className="text-2xl md:text-3xl font-bold neon-text">
                 لوحة الخطط الأسبوعية - متوسطة عمرو بن العاص بالهفوف
               </CardTitle>
             </div>
