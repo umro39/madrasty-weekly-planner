@@ -1,4 +1,4 @@
-import { Construction, Calendar, Mail, Phone, School } from "lucide-react";
+import { Construction, Calendar, Mail, Twitter, School } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 
@@ -49,18 +49,20 @@ const UnderConstruction = () => {
                   <Mail className="w-5 h-5 text-primary" />
                   <div className="text-right">
                     <div className="text-sm text-muted-foreground">البريد الإلكتروني</div>
-                    <div className="font-medium">school@example.com</div>
+                    <div className="font-medium">fnar95@hotmail.com</div>
                   </div>
                 </CardContent>
               </Card>
               
-              <Card className="border border-primary/20 bg-primary/5">
-                <CardContent className="p-4 flex items-center gap-3">
-                  <Phone className="w-5 h-5 text-primary" />
-                  <div className="text-right">
-                    <div className="text-sm text-muted-foreground">الهاتف</div>
-                    <div className="font-medium">013-XXX-XXXX</div>
-                  </div>
+              <Card className="border border-primary/20 bg-primary/5 hover:bg-primary/10 transition-colors cursor-pointer">
+                <CardContent className="p-4">
+                  <a href="https://x.com/Fnar9595" target="_blank" rel="noopener noreferrer" className="flex items-center gap-3">
+                    <Twitter className="w-5 h-5 text-primary" />
+                    <div className="text-right">
+                      <div className="text-sm text-muted-foreground">تابعنا على تويتر</div>
+                      <div className="font-medium">@Fnar9595</div>
+                    </div>
+                  </a>
                 </CardContent>
               </Card>
             </div>
